@@ -4,7 +4,8 @@ const TILE_SIZE: f32 = 40.0;
 
 #[derive(Component)]
 struct Board {
-    size: u8
+    size: u8,
+    color: Color,
 }
 
 fn main() {
@@ -20,8 +21,10 @@ fn setup(mut commands: Commands) {
         .spawn(Camera2dBundle::default());
 }
 
-fn spawn_board(mut commands: Commands) {
-    let board = Board { size: 4 };
+fn spawn_board(
+    mut commands: Commands,
+) {
+    let board = Board {size: 4, color: Color::rgb(0.7, 0.2, 0.8)};
     let physical_board_size = f32::from(board.size) * TILE_SIZE;
 
     let sprite = Sprite{
@@ -29,6 +32,7 @@ fn spawn_board(mut commands: Commands) {
             physical_board_size,
             physical_board_size,
         )),
+        color: board.color,
         ..Default::default()
     };
 
@@ -36,6 +40,5 @@ fn spawn_board(mut commands: Commands) {
         .spawn(SpriteBundle {
             sprite: sprite,
             ..Default::default()
-        })
-        .insert(board);
+        });
 }
