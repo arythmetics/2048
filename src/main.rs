@@ -1,8 +1,8 @@
 use bevy::prelude::*;
+use itertools::Itertools;
 
 const TILE_SIZE: f32 = 40.0;
 
-#[derive(Component)]
 struct Board {
     size: u8,
     color: Color,
@@ -57,12 +57,17 @@ fn spawn_board(
         .with_children(|builder| {
             let offset = -physical_board_size / 2.0 + 0.5 * TILE_SIZE;
 
-            builder.spawn(SpriteBundle {
-                sprite: tile_sprite,
-                transform: Transform::from_xyz(
-                    offset, offset, 1.0,
-                ),
-                ..Default::default()
-            });
+            for tile in (0..board.size).cartesian_product(0..board.size) {
+                builder.spawn(SpriteBundle {
+                    sprite: tile_sprite.clone(),
+                    transform: Transform::from_xyz(
+                        offset + f32::from(tile.0) * TILE_SIZE, 
+                        offset + f32::from(tile.1) * TILE_SIZE, 
+                        1.0,
+                    ),
+                    ..Default::default()
+                });
+            }
+            
         });
 }
