@@ -30,7 +30,6 @@ fn spawn_board(
 ) {
     let board = Board {size: 4, color: Color::rgb(0.7, 0.2, 0.8)};
     let physical_board_size = f32::from(board.size) * TILE_SIZE;
-
     let board_sprite = Sprite{
         custom_size: Some(Vec2::new(
             physical_board_size,
@@ -56,10 +55,12 @@ fn spawn_board(
             ..Default::default()
         })
         .with_children(|builder| {
+            let offset = -physical_board_size / 2.0 + 0.5 * TILE_SIZE;
+
             builder.spawn(SpriteBundle {
                 sprite: tile_sprite,
                 transform: Transform::from_xyz(
-                    0.0, 0.0, 1.0,
+                    offset, offset, 1.0,
                 ),
                 ..Default::default()
             });
