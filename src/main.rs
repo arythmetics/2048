@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use itertools::Itertools;
 
 const TILE_SIZE: f32 = 40.0;
+const TILE_SPACER: f32 = 10.0;
 
 struct Board {
     size: u8,
@@ -29,7 +30,10 @@ fn spawn_board(
     mut commands: Commands,
 ) {
     let board = Board {size: 4, color: Color::rgb(0.7, 0.2, 0.8)};
-    let physical_board_size = f32::from(board.size) * TILE_SIZE;
+    let physical_board_size = f32::from(board.size) 
+        * TILE_SIZE
+        + f32::from(board.size + 1) * TILE_SPACER;
+
     let board_sprite = Sprite{
         custom_size: Some(Vec2::new(
             physical_board_size,
@@ -61,8 +65,8 @@ fn spawn_board(
                 builder.spawn(SpriteBundle {
                     sprite: tile_sprite.clone(),
                     transform: Transform::from_xyz(
-                        offset + f32::from(tile.0) * TILE_SIZE, 
-                        offset + f32::from(tile.1) * TILE_SIZE, 
+                        offset + f32::from(tile.0) * TILE_SIZE + f32::from(tile.0 + 1) * TILE_SPACER, 
+                        offset + f32::from(tile.1) * TILE_SIZE + f32::from(tile.1 + 1) * TILE_SPACER, 
                         1.0,
                     ),
                     ..Default::default()
