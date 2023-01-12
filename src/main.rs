@@ -65,7 +65,7 @@ fn spawn_board(
             board.physical_size,
             board.physical_size,
         )),
-        color: Color::rgb(0.7, 0.2, 0.8),
+        color: Color::rgb(0.7, 0.7, 0.8),
         ..Default::default()
     };
 
@@ -94,9 +94,8 @@ fn spawn_board(
                     ),
                     ..Default::default()
                 });
-            }
-            
-        });
+            }   
+        }).insert(board);
 }
 
 fn spawn_tiles(
@@ -115,7 +114,7 @@ fn spawn_tiles(
         let pos = Position { x: *x, y: *y };
 
         let tile_sprite = Sprite {
-            color: Color::rgb(0.75, 0.75, 0.9),
+            color: Color::rgb(0.85, 0.85, 0.9),
             custom_size: Some(Vec2::new(
                 TILE_SIZE,
                 TILE_SIZE,
