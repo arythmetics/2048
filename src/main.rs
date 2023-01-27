@@ -3,6 +3,9 @@ use itertools::Itertools;
 use rand::prelude::*;
 use std::{convert::TryFrom, cmp::Ordering};
 
+mod ui;
+use ui::*;
+
 const TILE_SIZE: f32 = 40.0;
 const TILE_SPACER: f32 = 10.0;
 
@@ -163,6 +166,7 @@ fn main() {
         .add_system(board_shift)
         .add_system(render_tiles)
         .add_system(new_tile_handler)
+        .add_plugin(GameUiPlugin)
         .run()
 }
 
