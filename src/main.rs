@@ -142,6 +142,11 @@ impl FromWorld for FontSpec {
 
 struct NewTileEvent;
 
+#[derive(Default, Resource)]
+struct Game {
+    score: u32
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -153,6 +158,7 @@ fn main() {
             spawn_tiles,
         )
         .add_event::<NewTileEvent>()
+        .init_resource::<Game>()
         .add_system(render_tile_points)
         .add_system(board_shift)
         .add_system(render_tiles)
@@ -252,7 +258,8 @@ fn board_shift(
     keyboard_input: Res<Input<KeyCode>>,
     mut tiles: Query<(Entity, &mut Position, &mut Points)>,
     mut tile_writer: EventWriter<NewTileEvent>,
-    query_board: Query<&Board>
+    query_board: Query<&Board>,
+    mut game: ResMut<Game>
 ) {
     let board = query_board.single();
 
@@ -288,6 +295,10 @@ fn board_shift(
                                 .next()
                                 .expect("A peeked tile should always exist when we .next here");
                             tile.2.value = tile.2.value + real_next_tile.2.value;
+
+                            // Add tile value to score when successfully merged
+                            game.score += tile.2.value;
+
                             commands
                                 .entity(real_next_tile.0)
                                 .despawn_recursive();
@@ -304,6 +315,7 @@ fn board_shift(
                         }
                     }
                 }
+                dbg!(game.score);
                 tile_writer.send(NewTileEvent);
     }
 }
