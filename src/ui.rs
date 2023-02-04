@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::FontSpec;
+use crate::{FontSpec, Game};
 
 #[derive(Component)]
 pub struct ScoreDisplay;
@@ -11,7 +11,9 @@ pub struct GameUiPlugin;
 
 impl Plugin for GameUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_ui);
+        app
+            .add_startup_system(setup_ui)
+            .add_system(scoreboard);
     }
 }
 
@@ -184,4 +186,12 @@ fn setup_ui(
                 });
             });
     });
+}
+
+fn scoreboard(
+    game: Res<Game>,
+    mut query_scores: Query<&mut Text, With<ScoreDisplay>>,
+) {
+    let mut text = query_scores.single_mut();
+    text.sections[0].value = game.score.to_string();
 }
