@@ -1,10 +1,14 @@
-use bevy::prelude::*;
-use itertools::Itertools;
-use rand::prelude::*;
-use std::{convert::TryFrom, cmp::Ordering};
-
 mod ui;
 use ui::*;
+
+use bevy::{prelude::*, utils::HashMap};
+use itertools::Itertools;
+use rand::prelude::*;
+use std::{
+    convert::TryFrom, 
+    cmp::Ordering, 
+    ops::Range
+};
 
 const TILE_SIZE: f32 = 40.0;
 const TILE_SPACER: f32 = 10.0;
@@ -29,12 +33,12 @@ impl Board {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 struct Points {
     value: u32,
 }
 
-#[derive(Component, PartialEq, Copy, Clone)]
+#[derive(Component, PartialEq, Copy, Clone, Eq, Hash)]
 struct Position {
     x: u8,
     y: u8,
@@ -166,6 +170,7 @@ fn main() {
         .add_system(board_shift)
         .add_system(render_tiles)
         .add_system(new_tile_handler)
+        .add_system(end_game)
         .add_plugin(GameUiPlugin)
         .run()
 }
@@ -427,4 +432,48 @@ fn spawn_tile(
     })
     .insert(Points { value: 2 })
     .insert(pos);
+}
+
+fn end_game(
+    tiles: Query<(&Position, &Points)>,
+    query_board: Query<&Board>,
+) {
+    let board = query_board.single();
+
+    if tiles.iter().len() == 16 {
+        let map: HashMap<&Position, &Points> = tiles.iter().collect();
+
+        let neighbour_points = [(-1, 0), (0, 1), (1, 0), (0, -1)];
+        let board_range: Range<i8> = 0..(board.size as i8);
+
+        let has_move = tiles.iter().any(
+            |(Position{x,y}, value)| {
+                neighbour_points
+                .iter()
+                .filter_map(|(x2, y2)| {
+                    let new_x = *x as i8 - x2;
+                    let new_y = *y as i8 - y2;
+
+                    // If there's space next to any of the tiles, the game continues.
+                    if !board_range.contains(&new_x)
+                        || !board_range.contains(&new_y)
+                    {
+                        return None;
+                    };
+
+                    // Grab the value of a tile that exists next to the tile that
+                    // we're comparing and then...
+                    map.get(&Position {
+                        x: new_x.try_into().unwrap(),
+                        y: new_y.try_into().unwrap(),
+                    })
+                })
+                // ... see if it can be merged
+                .any(|&v| v == value)
+            }
+        );
+        if has_move == false {
+            dbg!("game over!");
+        }
+    }
 }
