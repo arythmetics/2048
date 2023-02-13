@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{FontSpec, Game};
+use crate::{FontSpec, Game, RunState};
 
 #[derive(Component)]
 pub struct ScoreDisplay;
@@ -12,8 +12,68 @@ pub struct GameUiPlugin;
 impl Plugin for GameUiPlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_resource::<ButtonMaterials>()
             .add_startup_system(setup_ui)
-            .add_system(scoreboard);
+            .add_system(scoreboard)
+            .add_system(button_interaction_system);
+    }
+}
+
+#[derive(Resource)]
+struct ButtonMaterials {
+    normal: Handle<ColorMaterial>,
+    hovered: Handle<ColorMaterial>,
+    pressed: Handle<ColorMaterial>,
+}
+
+impl FromWorld for ButtonMaterials {
+    fn from_world(world: &mut World) -> Self {
+        let mut materials = world
+            .get_resource_mut::<Assets<ColorMaterial>>()
+            .unwrap();
+        ButtonMaterials { 
+            normal: materials
+                .add(Color::rgb(0.75, 0.75, 0.9).into()), 
+            hovered: materials
+                .add(Color::rgb(0.70, 0.70, 0.9).into()), 
+            pressed: materials
+                .add(Color::rgb(0.60, 0.60, 1.0).into()), 
+        }
+    }
+}
+
+fn button_interaction_system(
+    button_materials: Res<ButtonMaterials>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut run_state: ResMut<State<RunState>>,
+) {
+    for (interaction, mut material) in interaction_query.iter_mut() {
+        match interaction {
+            Interaction::Clicked => {
+                *material = button_materials.pressed.clone();
+                match run_state.current() {
+                    RunState::Playing => {
+                        run_state
+                            .set(RunState::GameOver)
+                            .unwrap();
+                    }
+                    RunState::GameOver => {
+                        run_state
+                            .set(RunState::Playing)
+                            .unwrap();
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *material = button_materials.hovered.clone();
+            }
+            Interaction::None => {
+                *material = button_materials.normal.clone();
+            }
+        }
     }
 }
 

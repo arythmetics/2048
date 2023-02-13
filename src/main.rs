@@ -13,6 +13,12 @@ use std::{
 const TILE_SIZE: f32 = 40.0;
 const TILE_SPACER: f32 = 10.0;
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+enum RunState {
+    Playing,
+    GameOver,
+}
+
 #[derive(Component)]
 struct Board {
     size: u8,
@@ -166,12 +172,21 @@ fn main() {
         )
         .add_event::<NewTileEvent>()
         .init_resource::<Game>()
+        .add_state(RunState::Playing)
         .add_system(render_tile_points)
         .add_system(board_shift)
         .add_system(render_tiles)
         .add_system(new_tile_handler)
         .add_system(end_game)
         .add_plugin(GameUiPlugin)
+        .add_system_set(
+            SystemSet::on_update(RunState::Playing)
+                .with_system(render_tile_points)
+                .with_system(board_shift)
+                .with_system(render_tiles)
+                .with_system(new_tile_handler)
+                .with_system(end_game),
+        )
         .run()
 }
 
@@ -437,6 +452,7 @@ fn spawn_tile(
 fn end_game(
     tiles: Query<(&Position, &Points)>,
     query_board: Query<&Board>,
+    mut run_state: ResMut<State<RunState>>,
 ) {
     let board = query_board.single();
 
@@ -474,6 +490,7 @@ fn end_game(
         );
         if has_move == false {
             dbg!("game over!");
+            run_state.set(RunState::GameOver).unwrap();
         }
     }
 }
