@@ -81,7 +81,6 @@ fn setup_ui(
     mut commands:Commands,
     font_spec: Res<FontSpec>
 ) {
-    commands.spawn(Camera2dBundle::default());
     commands
     .spawn(NodeBundle {
         style: Style {
