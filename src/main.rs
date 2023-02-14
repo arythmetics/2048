@@ -13,6 +13,19 @@ use std::{
 const TILE_SIZE: f32 = 40.0;
 const TILE_SPACER: f32 = 10.0;
 
+pub struct Materials {
+    pub board: Color,
+    pub tile_placeholder: Color,
+    pub tile: Color,
+    pub none: Color,
+}
+pub const MATERIALS: Materials = Materials {
+    board: Color::rgb(0.7, 0.7, 0.8),
+    tile_placeholder: Color::rgb(0.75, 0.75, 0.9),
+    tile: Color::rgb(0.9, 0.9, 1.0),
+    none: Color::NONE,
+};
+
 #[derive(Component)]
 struct Board {
     size: u8,
@@ -154,24 +167,34 @@ struct Game {
     score: u32
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+enum RunState {
+    Playing,
+    GameOver,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(GameUiPlugin)
         .init_resource::<FontSpec>()
+        .init_resource::<Game>()
+        .add_event::<NewTileEvent>()
+        .add_state(RunState::Playing)
         .add_startup_system(setup)
         .add_startup_system(spawn_board)
         .add_startup_system_to_stage(
             StartupStage::PostStartup,
             spawn_tiles,
         )
-        .add_event::<NewTileEvent>()
-        .init_resource::<Game>()
-        .add_system(render_tile_points)
-        .add_system(board_shift)
-        .add_system(render_tiles)
-        .add_system(new_tile_handler)
-        .add_system(end_game)
-        .add_plugin(GameUiPlugin)
+        .add_system_set(
+            SystemSet::on_update(RunState::Playing)
+                .with_system(render_tile_points)
+                .with_system(board_shift)
+                .with_system(render_tiles)
+                .with_system(new_tile_handler)
+                .with_system(end_game)
+        )
         .run()
 }
 
@@ -189,7 +212,7 @@ fn spawn_board(
             board.physical_size,
             board.physical_size,
         )),
-        color: Color::rgb(0.7, 0.7, 0.8),
+        color: MATERIALS.board,
         ..Default::default()
     };
 
@@ -198,7 +221,7 @@ fn spawn_board(
             TILE_SIZE,
             TILE_SIZE,
         )),
-        color: Color::rgb(0.75, 0.75, 0.9),
+        color: MATERIALS.tile_placeholder,
         ..Default::default()
     };
 
@@ -392,7 +415,7 @@ fn spawn_tile(
     pos: Position,
 ) {
     let tile_sprite = Sprite {
-        color: Color::rgb(0.85, 0.85, 0.9),
+        color: MATERIALS.tile,
         custom_size: Some(Vec2::new(
             TILE_SIZE,
             TILE_SIZE,
@@ -437,6 +460,7 @@ fn spawn_tile(
 fn end_game(
     tiles: Query<(&Position, &Points)>,
     query_board: Query<&Board>,
+    mut run_state: ResMut<State<RunState>>,
 ) {
     let board = query_board.single();
 
@@ -474,6 +498,7 @@ fn end_game(
         );
         if has_move == false {
             dbg!("game over!");
+            run_state.set(RunState::GameOver).unwrap();
         }
     }
 }
