@@ -163,8 +163,9 @@ impl FromWorld for FontSpec {
 struct NewTileEvent;
 
 #[derive(Default, Resource)]
-struct Game {
-    score: u32
+struct  Game {
+    score: u32,
+    score_best: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -349,6 +350,9 @@ fn board_shift(
                     }
                 }
                 tile_writer.send(NewTileEvent);
+    }
+    if game.score_best < game.score {
+        game.score_best = game.score;
     }
 }
 
