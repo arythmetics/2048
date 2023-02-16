@@ -2,6 +2,7 @@ mod ui;
 use ui::*;
 
 use bevy::{prelude::*, utils::HashMap};
+use bevy_easings::*;
 use itertools::Itertools;
 use rand::prelude::*;
 use std::{
@@ -178,6 +179,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(GameUiPlugin)
+        .add_plugin(EasingsPlugin)
         .init_resource::<FontSpec>()
         .init_resource::<Game>()
         .add_event::<NewTileEvent>()
@@ -357,22 +359,37 @@ fn board_shift(
 }
 
 fn render_tiles(
-    mut tiles: Query<(
-        &mut Transform,
-        &Position,
+    mut commands: Commands,
+    tiles: Query<
+        (Entity, &Transform, &Position),
         Changed<Position>,
-    )>,
+    >,
     query_board: Query<&Board>,
 ) {
-    let board = query_board
-        .single();
-    for (mut transform, pos, pos_changed) in tiles.iter_mut()
-    {
-        if pos_changed {
-            transform.translation.x = board.cell_position_to_physical(pos.x);
-            transform.translation.y = board.cell_position_to_physical(pos.y);
-        }
+    let board = query_board.single();
+    for (entity, transform, pos) in tiles.iter() {
+        let x = board.cell_position_to_physical(pos.x);
+        let y = board.cell_position_to_physical(pos.y);
+
+        commands.entity(entity).insert(transform.ease_to(
+            Transform::from_xyz(
+                x,
+                y,
+                transform.translation.z,
+            ),
+            EaseFunction::SineInOut,
+            EasingType::Once {
+                duration: std::time::Duration::from_millis(200)
+            }
+        ));
     }
+    // for (mut transform, pos, pos_changed) in tiles.iter_mut()
+    // {
+    //     if pos_changed {
+    //         transform.translation.x = board.cell_position_to_physical(pos.x);
+    //         transform.translation.y = board.cell_position_to_physical(pos.y);
+    //     }
+    // }
 }
 
 fn new_tile_handler(
