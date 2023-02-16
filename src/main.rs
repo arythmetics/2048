@@ -78,9 +78,8 @@ impl BoardShift {
     fn sort(&self, a: &Position, b: &Position) -> Ordering {
         match self {
             BoardShift::Left => {
-            match Ord::cmp(&a.y, &b.y) {
-                Ordering::Equal =>
-                    Ord::cmp(&a.x, &b.x),
+                match Ord::cmp(&a.y, &b.y) {
+                    Ordering::Equal => Ord::cmp(&a.x, &b.x),
                     ordering => ordering,
                 }
             }
@@ -97,7 +96,7 @@ impl BoardShift {
                     Ord::cmp(&b.y, &a.y)
                 }
                 ordering => ordering,
-            }
+            },
             BoardShift::Down => {
                 match Ord::cmp(&a.x, &b.x) {
                     std::cmp::Ordering::Equal => {
@@ -217,7 +216,7 @@ fn spawn_board(
             board.physical_size,
         )),
         color: MATERIALS.board,
-        ..Default::default()
+        ..Sprite::default()
     };
 
     let tile_sprite = Sprite {
@@ -377,7 +376,7 @@ fn render_tiles(
                 y,
                 transform.translation.z,
             ),
-            EaseFunction::SineInOut,
+            EaseFunction::QuadraticInOut,
             EasingType::Once {
                 duration: std::time::Duration::from_millis(200)
             }
@@ -450,7 +449,7 @@ fn spawn_tile(
         transform: Transform::from_xyz(
             board.cell_position_to_physical(pos.x),
             board.cell_position_to_physical(pos.y),
-            1.0,
+            2.0,
         ),
         ..Default::default()
     })

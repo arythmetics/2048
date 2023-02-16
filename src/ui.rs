@@ -60,10 +60,7 @@ fn setup_ui(
                     color: Color::WHITE,
                 }
             ).with_alignment(
-                TextAlignment { 
-                    vertical: VerticalAlign::Center, 
-                    horizontal: HorizontalAlign::Center,
-                }
+                TextAlignment::default(),
             ),
             ..Default::default()
         });
